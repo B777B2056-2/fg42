@@ -43,6 +43,19 @@ set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 add_subdirectory("external/tokenizers-cpp")
 install(TARGETS tokenizers_cpp)
 
+# 添加Jinja2cpp库
+set(JINJA2CPP_BUILD_TESTS OFF)
+set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}")
+set(CMAKE_INSTALL_BINDIR "${CMAKE_INSTALL_PREFIX}/bin")
+set(CMAKE_INSTALL_LIBDIR "${CMAKE_INSTALL_PREFIX}/lib")
+set(CMAKE_INSTALL_DATAROOTDIR "${CMAKE_INSTALL_PREFIX}/data")
+set(JINJA2CPP_DEPS_MODE internal)
+set(JINJA2CPP_INSTALL ON)
+add_definitions(-Dvariant_CPP17_OR_GREATER)
+add_subdirectory("external/Jinja2Cpp")
+install(TARGETS)
+set(JINJA2CPP_INCLUDE_DIRS "external/Jinja2Cpp/include")
+
 # 递归查找所有.cpp文件
 file(GLOB_RECURSE CPP_SOURCES
     "memory/*.cpp"
@@ -65,9 +78,8 @@ include_directories(${PROJECT_NAME} PRIVATE
         ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
         ${EIGEN3_INCLUDE_DIRS}
         ${JSON_INCLUDE_DIRS}
+        ${JINJA2CPP_INCLUDE_DIRS}
 )
-
-message(STATUS "EIGEN3_INCLUDE_DIRS: ${EIGEN3_INCLUDE_DIRS}")
 
 # 链接库
 target_link_libraries(${PROJECT_NAME} PRIVATE
@@ -75,6 +87,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         Eigen3::Eigen
         nlohmann_json::nlohmann_json
         tokenizers_cpp
+        jinja2cpp
 )
 
 # 设置CUDA架构

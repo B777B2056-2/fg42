@@ -1,3 +1,6 @@
 [submodule "external/tokenizers-cpp"]
 	path = external/tokenizers-cpp
 	url = https://github.com/mlc-ai/tokenizers-cpp.git
+[submodule "external/Jinja2Cpp"]
+	path = external/Jinja2Cpp
+	url = https://github.com/jinja2cpp/Jinja2Cpp.git

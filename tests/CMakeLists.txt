@@ -35,6 +35,7 @@ include_directories(${PROJECT_NAME} PRIVATE
         ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
         ${EIGEN3_INCLUDE_DIRS}
         ${JSON_INCLUDE_DIRS}
+        ${JINJA2CPP_INCLUDE_DIRS}
 )
 
 # 链接库
@@ -43,5 +44,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         Eigen3::Eigen
         nlohmann_json::nlohmann_json
         tokenizers_cpp
+        jinja2cpp
         GTest::gtest_main
 )
