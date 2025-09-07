@@ -1,7 +1,7 @@
 //
 // Created by 19373 on 2025/9/4.
 //
-
+#ifdef HAVE_CUDA
 #include "memory/NvidiaGPUMemoryAllocator.h"
 
 namespace fg42 {
@@ -30,3 +30,4 @@ namespace fg42 {
         p.reset();
     }
 }
+#endif

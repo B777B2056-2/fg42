@@ -4,9 +4,9 @@
 
 #ifndef FG42_NVIDIAGPUMEMORYALLOCATOR_H
 #define FG42_NVIDIAGPUMEMORYALLOCATOR_H
+#ifdef HAVE_CUDA
 #include <cuda_runtime.h>
 #include <stdexcept>
-#include <string>
 #include "memory/BaseAllocator.h"
 
 namespace fg42 {
@@ -24,5 +24,6 @@ namespace fg42 {
         void deallocate(PtrDeviceWrapper&& p) override;
     };
 } // fg42
+#endif
 
 #endif //FG42_NVIDIAGPUMEMORYALLOCATOR_H

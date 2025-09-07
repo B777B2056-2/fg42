@@ -4,7 +4,6 @@
 
 #ifndef FG42_ENUM_H
 #define FG42_ENUM_H
-#include <cstddef>
 #include <cstdint>
 
 namespace fg42 {

@@ -2,7 +2,9 @@
 // Created by 19373 on 2025/9/6.
 //
 #include "Eigen/Core"
+#ifdef HAVE_CUDA
 #include "memory/NvidiaGPUMemoryAllocator.h"
+#endif
 #include "memory/Common.h"
 #include "operator/VecAddOperator.h"
 #include "operator/EmbeddingOperator.h"
@@ -143,11 +145,13 @@ TEST(VecAddOperatorTest, CPU) {
     test_add_operator_bfloat16(fg42::DeviceType::CPU);
 }
 
+#ifdef HAVE_CUDA
 TEST(VecAddOperatorTest, CUDA) {
     test_add_operator_int(fg42::DeviceType::NvidiaGPU);
     test_add_operator_float(fg42::DeviceType::NvidiaGPU);
     test_add_operator_bfloat16(fg42::DeviceType::NvidiaGPU);
 }
+#endif
 
 void test_embedding_operator_bfloat16(fg42::DeviceType device_type) {
     using bfloat16 = Eigen::bfloat16;

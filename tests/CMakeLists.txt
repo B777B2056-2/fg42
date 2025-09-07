@@ -20,23 +20,22 @@ FetchContent_MakeAvailable(googletest)
 # 递归查找所有.cpp文件
 file(GLOB_RECURSE CPP_TEST_SOURCES "test_*.cpp")
 
-include_directories(${PROJECT_NAME} PRIVATE
-        ".."
-        ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
-        ${EIGEN3_INCLUDE_DIRS}
-)
-
-# 添加可执行文件
-add_executable(${PROJECT_NAME} ${CPP_TEST_SOURCES} ${CPP_SOURCES} ${CUDA_SOURCES})
-
 # 包含目录
 include_directories(${PROJECT_NAME} PRIVATE
         ..
-        ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
         ${EIGEN3_INCLUDE_DIRS}
         ${JSON_INCLUDE_DIRS}
         ${JINJA2CPP_INCLUDE_DIRS}
 )
+
+if (DEFINED HAVE_CUDA)
+    target_include_directories(${PROJECT_NAME} PRIVATE
+            ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
+    )
+endif ()
+
+# 添加可执行文件
+add_executable(${PROJECT_NAME} ${CPP_TEST_SOURCES} ${CPP_SOURCES} ${CUDA_SOURCES})
 
 # 链接库
 target_link_libraries(${PROJECT_NAME} PRIVATE
@@ -47,3 +46,9 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         jinja2cpp
         GTest::gtest_main
 )
+
+if (DEFINED HAVE_CUDA)
+    target_link_libraries(${PROJECT_NAME} PRIVATE
+            CUDA::cudart
+    )
+endif ()

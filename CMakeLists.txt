@@ -1,19 +1,37 @@
 cmake_minimum_required(VERSION 3.28 FATAL_ERROR)
 
 # 设置项目名称和支持的语言
-project(FG42 LANGUAGES CXX CUDA)
+project(FG42 LANGUAGES CXX)  # 移除了CUDA语言依赖
 
 # 设置C++17标准
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# 设置CUDA标准
-set(CMAKE_CUDA_STANDARD 17)
-set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+# 查找CUDA工具包（改为可选查找）
+find_package(CUDAToolkit)
 
-# 查找CUDA工具包
-find_package(CUDAToolkit REQUIRED)
+# 根据CUDA是否可用设置宏和变量
+if(CUDAToolkit_FOUND)
+    # 启用CUDA语言支持
+    enable_language(CUDA)
+
+    # 设置CUDA标准
+    set(CMAKE_CUDA_STANDARD 17)
+    set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+
+    # 定义HAVE_CUDA宏
+    add_definitions(-DHAVE_CUDA)
+
+    # 递归查找所有.cu文件（CUDA源文件）
+    file(GLOB_RECURSE CUDA_SOURCES "operator/cuda/*.cu")
+
+    # 设置CUDA架构
+    set(CUDA_ARCHITECTURES "50;61;75;80;86")
+else()
+    # 没有CUDA时清空CUDA源文件列表
+    set(CUDA_SOURCES "")
+endif()
 
 # 下载Eigen3.4库
 include(FetchContent)
@@ -51,23 +69,19 @@ set(CMAKE_INSTALL_LIBDIR "${CMAKE_INSTALL_PREFIX}/lib")
 set(CMAKE_INSTALL_DATAROOTDIR "${CMAKE_INSTALL_PREFIX}/data")
 set(JINJA2CPP_DEPS_MODE internal)
 set(JINJA2CPP_INSTALL ON)
-add_definitions(-Dvariant_CPP17_OR_GREATER)
 add_subdirectory("external/Jinja2Cpp")
 install(TARGETS)
 set(JINJA2CPP_INCLUDE_DIRS "external/Jinja2Cpp/include")
 
 # 递归查找所有.cpp文件
 file(GLOB_RECURSE CPP_SOURCES
-    "memory/*.cpp"
-    "operator/*.cpp"
-    "tensor/*.cpp"
-    "model/*.cpp"
-    "tokenizer/*.cpp"
-    "util/*.cpp"
+        "memory/*.cpp"
+        "operator/*.cpp"
+        "tensor/*.cpp"
+        "model/*.cpp"
+        "tokenizer/*.cpp"
+        "util/*.cpp"
 )
-
-# 递归查找所有.cu文件（CUDA源文件）
-file(GLOB_RECURSE CUDA_SOURCES "operator/cuda/*.cu")
 
 # 添加可执行文件
 add_executable(${PROJECT_NAME} main.cpp ${CPP_SOURCES} ${CUDA_SOURCES})
@@ -75,25 +89,36 @@ add_executable(${PROJECT_NAME} main.cpp ${CPP_SOURCES} ${CUDA_SOURCES})
 # 包含目录
 include_directories(${PROJECT_NAME} PRIVATE
         "."
-        ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
         ${EIGEN3_INCLUDE_DIRS}
         ${JSON_INCLUDE_DIRS}
         ${JINJA2CPP_INCLUDE_DIRS}
 )
 
+# 条件包含CUDA目录
+if(CUDAToolkit_FOUND)
+    target_include_directories(${PROJECT_NAME} PRIVATE
+            ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
+    )
+endif()
+
 # 链接库
 target_link_libraries(${PROJECT_NAME} PRIVATE
-        CUDA::cudart
         Eigen3::Eigen
         nlohmann_json::nlohmann_json
         tokenizers_cpp
         jinja2cpp
 )
 
-# 设置CUDA架构
-set(CUDA_ARCHITECTURES "50;61;75;80;86")
-set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON)
+# 条件链接CUDA库
+if(CUDAToolkit_FOUND)
+    target_link_libraries(${PROJECT_NAME} PRIVATE
+            CUDA::cudart
+    )
+
+    # 设置CUDA相关属性
+    set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+    set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON)
+endif()
 
 # 包含单元测试
 add_subdirectory("tests")

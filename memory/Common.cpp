@@ -2,21 +2,29 @@
 // Created by 19373 on 2025/9/4.
 //
 #include <memory>
-#include <cuda_runtime_api.h>
-#include <cuda_runtime.h>
+#include <stdexcept>
+#ifdef HAVE_CUDA
+    #include <cuda_runtime_api.h>
+    #include <cuda_runtime.h>
+    #include "memory/NvidiaGPUMemoryAllocator.h"
+#endif
+
 #include "memory/Common.h"
 #include "memory/CPUMemoryAllocator.h"
-#include "memory/NvidiaGPUMemoryAllocator.h"
 
 namespace fg42 {
     BaseAllocator* allocator_factory(DeviceType device_type) {
         static CPUMemoryAllocator cpu_allocator;
+#ifdef HAVE_CUDA
         static NvidiaGPUMemoryAllocator cuda_allocator;
+#endif
         switch (device_type) {
         case DeviceType::CPU:
             return &cpu_allocator;
+#ifdef HAVE_CUDA
         case DeviceType::NvidiaGPU:
             return &cuda_allocator;
+#endif
         default:
             throw std::runtime_error("Unknown device type");
         }
@@ -40,6 +48,7 @@ namespace fg42 {
             return;
         }
 
+#ifdef HAVE_CUDA
         // 存在cuda类型
         if (dst.device_type() == DeviceType::NvidiaGPU || src.device_type() == DeviceType::NvidiaGPU) {
             auto cudaMemcpyWrapper = [&dst, &src, count, options](cudaMemcpyKind kind) {
@@ -76,6 +85,7 @@ namespace fg42 {
                 return;
             }
         }
+#endif
     }
 
     // 为每个字节赋值
@@ -85,10 +95,12 @@ namespace fg42 {
             std::memset(p.raw_ptr(), val, n);
             return;
         }
+#ifdef HAVE_CUDA
         // gpu
         if (p.device_type() == DeviceType::NvidiaGPU) {
             cudaMemset(p.raw_ptr(), val, n);
             return;
         }
+#endif
     }
 }
