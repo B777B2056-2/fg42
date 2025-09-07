@@ -11,10 +11,10 @@ namespace fg42::kernel {
     DeviceType BaseOperator::device_type() const { return this->device_type_; }
     const std::string& BaseOperator::name() const { return this->name_; }
 
-    BaseOperatorWithWeight::BaseOperatorWithWeight(const std::vector<const Tensor*>& weight_tensors, const std::string& name)
-            : BaseOperator(DeviceType::Unknown, name), weight_tensors_(weight_tensors) {
-        if (!weight_tensors.empty()) {
-            this->device_type_ = weight_tensors[0]->device_type();
+    BaseOperatorWithWeight::BaseOperatorWithWeight(const Tensor& weight_tensor, const std::string& name)
+            : BaseOperator(DeviceType::Unknown, name), weight_tensor_(&weight_tensor) {
+        if (!weight_tensor.empty()) {
+            this->device_type_ = weight_tensor.device_type();
         }
     }
 }

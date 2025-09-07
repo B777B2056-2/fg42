@@ -51,12 +51,14 @@ __global__ void vec_add_kernel_fp32(std::int32_t size, const void* in1, const vo
 }
 
 namespace fg42::kernel {
-    void add_kernel_cuda(const Tensor& input1, const Tensor& input2, Tensor& output, void* stream) {
+    Tensor add_kernel_cuda(const Tensor& input1, const Tensor& input2, void* stream) {
         auto size = static_cast<std::int32_t>(input1.bytes_size());
         auto data_type = input1.data_type();
 
         std::int32_t thread_num = 512;
         std::int32_t block_num = (size + thread_num - 1) / thread_num;
+
+        Tensor output(input1.data_type(), input1.device_type(), input1.shape());
 
         switch (data_type) {
         case DataType::Int8:
@@ -90,5 +92,6 @@ namespace fg42::kernel {
         default:
             throw std::runtime_error("unsupported data type");
         }
+        return output;
     }
 }

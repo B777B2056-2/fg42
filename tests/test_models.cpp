@@ -3,36 +3,7 @@
 //
 #include "Eigen/Core"
 #include <gtest/gtest.h>
-#include "model/BaseModel.h"
-#include "operator/VecAddOperator.h"
-
-class MockModelLoader : fg42::BaseModel {
-    public:
-        MockModelLoader() = delete;
-
-        explicit MockModelLoader(const std::string& path, fg42::DeviceType device_type)
-            : fg42::BaseModel(path, device_type) {}
-
-        ~MockModelLoader() override = default;
-
-        const fg42::Tensor& mock_input() const {
-            return this->state_dict_.begin()->second;
-        }
-
-        fg42::Tensor forward(const fg42::Tensor& input) override {
-            // 使用加法mock前向传播
-            fg42::Tensor input_copy(input);
-
-            std::vector<const fg42::Tensor*> input_tensors{&input, &input_copy};
-
-            fg42::Tensor output(input_copy.data_type(), input_copy.device_type(), input_copy.shape());
-            std::vector<fg42::Tensor*> output_tensors({&output});
-
-            fg42::kernel::VecAddOperator op(input.device_type());
-            op.forward(input_tensors, output_tensors, nullptr);
-            return output;
-        }
-};
+#include "tests/mock_model.h"
 
 extern bool is_float_equal(float a, float b);
 

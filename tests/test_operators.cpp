@@ -5,6 +5,7 @@
 #include "memory/NvidiaGPUMemoryAllocator.h"
 #include "memory/Common.h"
 #include "operator/VecAddOperator.h"
+#include "operator/EmbeddingOperator.h"
 #include <gtest/gtest.h>
 
 
@@ -29,11 +30,8 @@ void test_add_operator_int(fg42::DeviceType device_type) {
 
     std::vector<const fg42::Tensor*> input_tensors({&a, &b});
 
-    fg42::Tensor output(fg42::DataType::Int8, device_type, {2, 3});
-    std::vector<fg42::Tensor*> output_tensors({&output});
-
     fg42::kernel::VecAddOperator op(device_type);
-    op.forward(input_tensors, output_tensors, nullptr);
+    auto output = op.forward(input_tensors, nullptr);
 
     if (output.device_type() != fg42::DeviceType::CPU) {
         output.to_device(fg42::DeviceType::CPU);
@@ -73,11 +71,8 @@ void test_add_operator_float(fg42::DeviceType device_type) {
 
     std::vector<const fg42::Tensor*> input_tensors({&a, &b});
 
-    fg42::Tensor output(fg42::DataType::FP32, device_type, {2, 3});
-    std::vector<fg42::Tensor*> output_tensors({&output});
-
     fg42::kernel::VecAddOperator op(device_type);
-    op.forward(input_tensors, output_tensors, nullptr);
+    auto output = op.forward(input_tensors, nullptr);
 
     if (output.device_type() != fg42::DeviceType::CPU) {
         output.to_device(fg42::DeviceType::CPU);
@@ -120,11 +115,8 @@ void test_add_operator_bfloat16(fg42::DeviceType device_type) {
 
     std::vector<const fg42::Tensor*> input_tensors({&a, &b});
 
-    fg42::Tensor output(fg42::DataType::BF16, device_type, {2, 3});
-    std::vector<fg42::Tensor*> output_tensors({&output});
-
     fg42::kernel::VecAddOperator op(device_type);
-    op.forward(input_tensors, output_tensors, nullptr);
+    auto output = op.forward(input_tensors, nullptr);
 
     if (output.device_type() != fg42::DeviceType::CPU) {
         output.to_device(fg42::DeviceType::CPU);
@@ -155,4 +147,58 @@ TEST(VecAddOperatorTest, CUDA) {
     test_add_operator_int(fg42::DeviceType::NvidiaGPU);
     test_add_operator_float(fg42::DeviceType::NvidiaGPU);
     test_add_operator_bfloat16(fg42::DeviceType::NvidiaGPU);
+}
+
+void test_embedding_operator_bfloat16(fg42::DeviceType device_type) {
+    using bfloat16 = Eigen::bfloat16;
+
+    // embedding权重赋值，只有0和1两个索引位
+    bfloat16 na[2][3] {
+        {bfloat16(11.0f), bfloat16(21.0f), bfloat16(31.0f)},
+        {bfloat16(41.0f), bfloat16(51.0f), bfloat16(61.0f)},
+    };
+    fg42::Tensor embedding_tensor(fg42::DataType::BF16, device_type, {2, 3});
+    for (std::size_t i = 0; i < 2; ++i) {
+        for (std::size_t j = 0; j < 3; ++j) {
+            embedding_tensor.index_fill({i, j}, &na[i][j]);
+        }
+    }
+
+    // 输入向量赋值，input_id只能为0或1（因为embedding权重只有0和1两个索引位）
+    std::int32_t nb[4][6] {
+        {1%2, 2%2, 3%2, 4%2, 5%2, 6%2},         // 0,0,1,0,1,0
+        {7%2, 8%2, 9%2, 10%2, 11%2, 12%2},      // 1,0,1,0,1,0
+        {13%2, 14%2, 15%2, 16%2, 17%2, 18%2},   // 1,0,1,0,1,0
+        {19%2, 20%2, 21%2, 22%2, 23%2, 24%2},   // 1,0,1,0,1,0
+    };
+    fg42::Tensor input_tensor(fg42::DataType::Int32, fg42::DeviceType::CPU, {4, 6});
+    for (std::size_t i = 0; i < 4; ++i) {
+        for (std::size_t j = 0; j < 6; ++j) {
+            input_tensor.index_fill({i, j}, &nb[i][j]);
+        }
+    }
+
+    // embedding运算
+    fg42::kernel::EmbeddingOperator op(embedding_tensor);
+    auto output = op.forward({&input_tensor}, nullptr);
+
+    // 检查输出张量的维度
+    ASSERT_EQ(output.shape().at(0), input_tensor.shape().at(0));
+    ASSERT_EQ(output.shape().at(1), input_tensor.shape().at(1));
+    ASSERT_EQ(output.shape().at(2), embedding_tensor.shape().at(1));
+
+    // 检查输出张量数值
+    for (std::size_t b = 0; b < 4; ++b) {
+        for (std::size_t s = 0; s < 6; ++s) {
+            for (std::size_t t = 0; t < 3; ++t) {
+                float expect = na[nb[b][s]][t];
+                auto val = static_cast<float>(*static_cast<bfloat16*>(output.data({b, s, t})));
+                EXPECT_TRUE(is_float_equal(val, expect));
+            }
+        }
+    }
+}
+
+TEST(EmbeddingOperatorTest, CPU) {
+    test_embedding_operator_bfloat16(fg42::DeviceType::CPU);
 }

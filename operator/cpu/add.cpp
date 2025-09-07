@@ -9,7 +9,8 @@ namespace fg42::kernel {
     using BFloat16Matrix = Eigen::Map<Eigen::Matrix<Eigen::bfloat16, Eigen::Dynamic, 1>>;
     using Float32Matrix = Eigen::Map<Eigen::Matrix<float, Eigen::Dynamic, 1>>;
 
-    void add_kernel_cpu(const Tensor& input1, const Tensor& input2, Tensor& output) {
+    Tensor add_kernel_cpu(const Tensor& input1, const Tensor& input2) {
+        Tensor output(input1.data_type(), input1.device_type(), input1.shape());
         switch (input1.data_type()) {
         case DataType::Int8: {
             Int8Matrix input_vec1(static_cast<std::int8_t*>(input1.raw_ptr()), input1.size());
@@ -35,5 +36,6 @@ namespace fg42::kernel {
         default:
             throw std::runtime_error("unsupported data type");
         }
+        return output;
     }
 }

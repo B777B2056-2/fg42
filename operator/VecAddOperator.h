@@ -12,12 +12,10 @@ namespace fg42::kernel {
         explicit VecAddOperator(DeviceType device_type, std::string name = "");
         ~VecAddOperator() override = default;
 
-        void forward(const std::vector<const Tensor*>& input_tensors,
-                     std::vector<Tensor*>& output_tensors, void* stream) override;
+        Tensor forward(const std::vector<const Tensor*>& input_tensors, void* stream) override;
 
     private:
-        bool check(const std::vector<const Tensor*>& input_tensors,
-                   std::vector<Tensor*>& output_tensors) const override;
+        bool check(const std::vector<const Tensor*>& input_tensors) const override;
     };
 }
 

@@ -3,7 +3,6 @@
 //
 #include <gtest/gtest.h>
 #include <unordered_map>
-#include <iostream>
 #include "tokenizer/AutoTokenizer.h"
 
 TEST(TokenizerTest, EncodeDecode) {

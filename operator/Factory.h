@@ -11,7 +11,14 @@ namespace fg42::kernel {
         DeviceType device_type;
 
         explicit VecAddKernelFunc(DeviceType device_type);
-        void operator()(const Tensor& input1, const Tensor& input2, Tensor& output, void* stream) const;
+        Tensor operator()(const Tensor& input1, const Tensor& input2, void* stream) const;
+    };
+
+    struct EmbeddingKernelFunc {
+        DeviceType device_type;
+
+        explicit EmbeddingKernelFunc(DeviceType device_type);
+        Tensor operator()(const Tensor* weight_tensor, const Tensor& input_tensor, void* stream) const;
     };
 }
 

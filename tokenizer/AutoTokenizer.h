@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include "external/tokenizers-cpp/include/tokenizers_cpp.h"
 #include "external/Jinja2Cpp/include/jinja2cpp/template.h"
+#include "tensor/Tensor.h"
 
 namespace fg42 {
     class AutoTokenizer {
@@ -30,12 +31,15 @@ namespace fg42 {
         std::vector<std::int32_t> encode(const std::string& text);
         std::string decode(const std::vector<std::int32_t>& input_ids);
 
+        Tensor encode_to_tensor(const std::string& text);
+        std::string decode_from_tensor(const Tensor& input_tensor);
+
         std::string apply_chat_template(const MessageType& messages);
 
     private:
         void load_vocabulary(const std::string& tokenizer_dir_path);
         void load_config(const std::string& tokenizer_dir_path);
-        jinja2::ValuesMap build_chat_template_context(const MessageType& messages) const;
+        [[nodiscard]] jinja2::ValuesMap build_chat_template_context(const MessageType& messages) const;
     };
 } // fg42
 

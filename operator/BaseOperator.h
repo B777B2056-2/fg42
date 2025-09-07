@@ -21,20 +21,21 @@ namespace fg42::kernel {
         [[nodiscard]] DeviceType device_type() const;
         [[nodiscard]] const std::string& name() const;
 
-        virtual void forward(const std::vector<const Tensor*>& input_tensors,
-                             std::vector<Tensor*>& output_tensors, void* stream) = 0;
+        virtual Tensor forward(const std::vector<const Tensor*>& input_tensors, void* stream) = 0;
 
     protected:
-        virtual bool check(const std::vector<const Tensor*>& input_tensors,
-                           std::vector<Tensor*>& output_tensors) const = 0;
+        virtual bool check(const std::vector<const Tensor*>& input_tensors) const = 0;
     };
 
     class BaseOperatorWithWeight : public BaseOperator {
     protected:
-        std::vector<const Tensor*> weight_tensors_;
+        const Tensor* weight_tensor_;
 
     public:
-        explicit BaseOperatorWithWeight(const std::vector<const Tensor*>& weight_tensors, const std::string& name = "");
+        explicit BaseOperatorWithWeight(const Tensor& weight_tensor, const std::string& name = "");
+
+    protected:
+        virtual bool check_weights(const Tensor& weight_tensors) const = 0;
     };
 } // kernel
 // fg42

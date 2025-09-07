@@ -1,6 +1,7 @@
 //
 // Created by 19373 on 2025/9/6.
 //
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include "nlohmann/json.hpp"
@@ -38,6 +39,29 @@ namespace fg42 {
 
     std::string AutoTokenizer::decode(const std::vector<std::int32_t>& input_ids) {
         return this->tok_->Decode(input_ids);
+    }
+
+    Tensor AutoTokenizer::encode_to_tensor(const std::string& text) {
+        auto input_ids = this->encode(text);
+        // 转换为tensor
+        Tensor output_tensor(DataType::Int32, DeviceType::CPU, {1, input_ids.size()});
+        std::memcpy(output_tensor.raw_ptr(), input_ids.data(), sizeof(std::int32_t) * input_ids.size());
+        return output_tensor;
+    }
+
+    std::string AutoTokenizer::decode_from_tensor(const Tensor& input_tensor) {
+        // tensor必须为int32类型
+        if (input_tensor.data_type() != DataType::Int32) {
+            throw std::runtime_error("Input tensor data type is not Int32");
+        }
+        // tensor必须在cpu上
+        if (input_tensor.device_type() != DeviceType::CPU) {
+            throw std::runtime_error("Input tensor device type is not CPU");
+        }
+        // 转换为vector
+        std::vector<std::int32_t> input_ids(input_tensor.size());
+        std::memcpy(input_ids.data(), input_tensor.raw_ptr(), sizeof(std::int32_t) * input_ids.size());
+        return this->decode(input_ids);
     }
 
     std::string AutoTokenizer::apply_chat_template(const MessageType& messages) {

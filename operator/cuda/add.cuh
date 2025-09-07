@@ -7,7 +7,7 @@
 #include "tensor/Tensor.h"
 
 namespace fg42::kernel {
-    void add_kernel_cuda(const Tensor& input1, const Tensor& input2, Tensor& output, void* stream);
+    Tensor add_kernel_cuda(const Tensor& input1, const Tensor& input2, void* stream);
 }
 
 #endif //FG42_ADD_CUH
