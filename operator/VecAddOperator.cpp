@@ -14,8 +14,7 @@ namespace fg42::kernel {
             throw std::runtime_error("VecAddOperator: check failed");
         }
 
-        auto f = VecAddKernelFunc(input_tensors[0]->device_type());
-        return f(*input_tensors[0], *input_tensors[1], stream);
+        return VecAddKernelFunc(*input_tensors[0], *input_tensors[1], stream);
     }
 
     bool VecAddOperator::check(const std::vector<const Tensor*>& input_tensors) const {

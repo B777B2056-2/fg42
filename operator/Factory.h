@@ -7,19 +7,8 @@
 #include "tensor/Tensor.h"
 
 namespace fg42::kernel {
-    struct VecAddKernelFunc {
-        DeviceType device_type;
-
-        explicit VecAddKernelFunc(DeviceType device_type);
-        Tensor operator()(const Tensor& input1, const Tensor& input2, void* stream) const;
-    };
-
-    struct EmbeddingKernelFunc {
-        DeviceType device_type;
-
-        explicit EmbeddingKernelFunc(DeviceType device_type);
-        Tensor operator()(const Tensor* weight_tensor, const Tensor& input_tensor, void* stream) const;
-    };
+    Tensor VecAddKernelFunc(const Tensor& input1, const Tensor& input2, void* stream);
+    Tensor EmbeddingKernelFunc(const Tensor* weight_tensor, const Tensor& input_tensor, void* stream);
 }
 
 #endif //FG42_FACTORY_H
