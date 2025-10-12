@@ -1,5 +1,5 @@
 //
-// Created by 19373 on 2025/9/4.
+// Created by B777B2056-2 on 2025/9/4.
 //
 #include <memory>
 #include <stdexcept>
@@ -40,7 +40,7 @@ namespace fg42 {
         return {ptr.raw_ptr(), deleter};
     }
 
-    void memcpy(PtrDeviceWrapper& dst, const PtrDeviceWrapper& src,
+    void memcpy_between_device(PtrDeviceWrapper& dst, const PtrDeviceWrapper& src,
                 std::size_t count, MemcpyOptions* options) {
         // 均为cpu类型
         if (dst.device_type() == DeviceType::CPU && src.device_type() == DeviceType::CPU) {

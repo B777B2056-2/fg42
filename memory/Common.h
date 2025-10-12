@@ -1,5 +1,5 @@
 //
-// Created by 19373 on 2025/8/31.
+// Created by B777B2056-2 on 2025/8/31.
 //
 
 #ifndef FG42_COMMON_H
@@ -17,7 +17,7 @@ namespace fg42 {
         bool need_sync = false;
     };
 
-    void memcpy(PtrDeviceWrapper& dst, const PtrDeviceWrapper& src,
+    void memcpy_between_device(PtrDeviceWrapper& dst, const PtrDeviceWrapper& src,
                 std::size_t count, MemcpyOptions* options = nullptr);
 
     // 为每个字节赋值

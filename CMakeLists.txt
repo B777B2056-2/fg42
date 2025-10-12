@@ -8,8 +8,15 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Windows下特殊编译命令
+if (MSVC)
+    add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
+    add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
+    add_compile_options(/bigobj)
+endif()
+
 # 查找CUDA工具包（改为可选查找）
-find_package(CUDAToolkit)
+find_package(CUDAToolkit QUIET)
 
 # 根据CUDA是否可用设置宏和变量
 if(CUDAToolkit_FOUND)
@@ -73,18 +80,21 @@ add_subdirectory("external/Jinja2Cpp")
 install(TARGETS)
 set(JINJA2CPP_INCLUDE_DIRS "external/Jinja2Cpp/include")
 
+file(GLOB_RECURSE CPP_TOKENIZER_SOURCES "tokenizer/*.cpp")
+
 # 递归查找所有.cpp文件
 file(GLOB_RECURSE CPP_SOURCES
+        "cache/*.cpp"
         "memory/*.cpp"
         "operator/*.cpp"
         "tensor/*.cpp"
         "model/*.cpp"
-        "tokenizer/*.cpp"
+        "sampler/*.cpp"
         "util/*.cpp"
 )
 
 # 添加可执行文件
-add_executable(${PROJECT_NAME} main.cpp ${CPP_SOURCES} ${CUDA_SOURCES})
+add_executable(${PROJECT_NAME} main.cpp ${CPP_SOURCES} ${CPP_TOKENIZER_SOURCES} ${CUDA_SOURCES})
 
 # 包含目录
 include_directories(${PROJECT_NAME} PRIVATE
@@ -100,6 +110,8 @@ if(CUDAToolkit_FOUND)
             ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
     )
 endif()
+
+link_directories()
 
 # 链接库
 target_link_libraries(${PROJECT_NAME} PRIVATE

@@ -1,48 +1,35 @@
 //
-// Created by 19373 on 2025/9/7.
+// Created by B777B2056-2 on 2025/9/7.
 //
 #include <stdexcept>
 #include "operator/EmbeddingOperator.h"
 #include "operator/Factory.h"
 
 namespace fg42::kernel {
-    EmbeddingOperator::EmbeddingOperator(const Tensor& weight_tensor,
-            const std::string& name , std::optional<EmbeddingOperatorOptions> options)
-        : BaseOperatorWithWeight(weight_tensor, name), options_(options) {
-        if (!this->EmbeddingOperator::check_weights(weight_tensor)) {
-            throw std::runtime_error("Wrong weight tensor");
-        }
-    }
+    EmbeddingOperator::EmbeddingOperator(const Tensor& weight_tensor)
+        : BaseOperator(), weight_tensor_(&weight_tensor) {}
 
-    bool EmbeddingOperator::check(const std::vector<const Tensor*>& input_tensors) const {
+    void EmbeddingOperator::check(const std::vector<const Tensor*>& input_tensors) {
+        BaseOperator::check(input_tensors);
+
         if (input_tensors.size() != 1) {
-            return false;
+            throw std::invalid_argument("Input tensor should be a one tensor");
         }
         // 每个元素必须是行向量，数据类型为int，且位于cpu上
         const auto* input_tensor = input_tensors[0];
         if (input_tensor->shape().size() < 2 || input_tensor->shape().size() > 3) {
-            return false;
+            throw std::invalid_argument("Input tensor's element should be a 1-D Tensor");
         }
         if (input_tensor->data_type() != DataType::Int32) {
-            return false;
+            throw std::invalid_argument("Input tensor should be int32");
         }
-        if (input_tensor->device_type() != DeviceType::CPU) {
-            return false;
-        }
-        return true;
-    }
-
-    bool EmbeddingOperator::check_weights(const Tensor& weight_tensor) const {
-        return true;
     }
 
     Tensor EmbeddingOperator::forward(const std::vector<const Tensor*>& input_tensors, void* stream) {
-        if (!this->check(input_tensors)) {
-            throw std::runtime_error("EmbeddingOperator: check failed");
-        }
+        this->check(input_tensors);
 
         const auto* input_tensor = input_tensors[0];
-        return EmbeddingKernelFunc(this->weight_tensor_, *input_tensor, stream);
+        return embedding_kernel_func(this->weight_tensor_, *input_tensor, stream);
     }
 } // kernel
 // fg42

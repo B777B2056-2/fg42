@@ -1,5 +1,5 @@
 //
-// Created by 19373 on 2025/9/6.
+// Created by B777B2056-2 on 2025/9/6.
 //
 
 #ifndef FG42_AUTOTOKENIZER_H
@@ -18,6 +18,7 @@ namespace fg42 {
         jinja2::Template chat_template_;
         std::optional<std::string> bos_token_;
         std::optional<std::string> eos_token_;
+        std::int32_t padding_idx_;
         std::unique_ptr<tokenizers::Tokenizer> tok_;
 
     public:
@@ -35,6 +36,8 @@ namespace fg42 {
         std::string decode_from_tensor(const Tensor& input_tensor);
 
         std::string apply_chat_template(const MessageType& messages);
+
+        [[nodiscard]] std::int32_t padding_idx() const;
 
     private:
         void load_vocabulary(const std::string& tokenizer_dir_path);

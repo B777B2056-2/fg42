@@ -1,5 +1,5 @@
 //
-// Created by 19373 on 2025/9/6.
+// Created by B777B2056-2 on 2025/9/6.
 //
 #include <cstdlib>
 #include <filesystem>
@@ -24,7 +24,8 @@ namespace fg42 {
         return data;
     }
 
-    AutoTokenizer::AutoTokenizer(const std::string& tokenizer_dir_path) : chat_template_(), tok_(nullptr) {
+    AutoTokenizer::AutoTokenizer(const std::string& tokenizer_dir_path)
+    : padding_idx_(0), tok_(nullptr) {
         this->load_vocabulary(tokenizer_dir_path);
         this->load_config(tokenizer_dir_path);
     }
@@ -75,6 +76,10 @@ namespace fg42 {
         return result.value();
     }
 
+    std::int32_t AutoTokenizer::padding_idx() const {
+        return padding_idx_;
+    }
+
     void AutoTokenizer::load_vocabulary(const std::string& tokenizer_dir_path) {
         fs::path dir_path = tokenizer_dir_path;
         fs::path tokenizer_json_file_path = dir_path / "tokenizer.json";
@@ -101,6 +106,9 @@ namespace fg42 {
         if (config_json.find("eos_token") != config_json.end() && !config_json["eos_token"].is_null()) {
             this->eos_token_ = config_json["eos_token"].get<std::string>();
         }
+
+        auto padding_token = config_json["pad_token"].get<std::string>();
+        padding_idx_ = this->encode(padding_token).front();
     }
 
     jinja2::ValuesMap AutoTokenizer::build_chat_template_context(const MessageType& messages) const {

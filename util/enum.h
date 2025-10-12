@@ -1,10 +1,10 @@
 //
-// Created by 19373 on 2025/8/31.
+// Created by B777B2056-2 on 2025/8/31.
 //
 
 #ifndef FG42_ENUM_H
 #define FG42_ENUM_H
-#include <cstdint>
+#include <stdexcept>
 
 namespace fg42 {
     enum class DeviceType : std::uint8_t {

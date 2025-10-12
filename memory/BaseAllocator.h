@@ -1,5 +1,5 @@
 //
-// Created by 19373 on 2025/8/31.
+// Created by B777B2056-2 on 2025/8/31.
 //
 
 #ifndef FG42_BASEALLOCATOR_H
@@ -15,7 +15,7 @@ namespace fg42 {
 
     public:
         PtrDeviceWrapper();
-        explicit PtrDeviceWrapper( DeviceType device_type, void* ptr=nullptr);
+        explicit PtrDeviceWrapper(DeviceType device_type, void* ptr=nullptr);
         PtrDeviceWrapper(PtrDeviceWrapper&& other) noexcept;
         PtrDeviceWrapper& operator=(PtrDeviceWrapper&& other) noexcept;
         ~PtrDeviceWrapper() = default;

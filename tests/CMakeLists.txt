@@ -1,12 +1,22 @@
 cmake_minimum_required(VERSION 3.28 FATAL_ERROR)
 
 # 设置项目名称和支持的语言
-project(FG42_TESTS LANGUAGES CXX CUDA)
+project(FG42_TESTS LANGUAGES CXX)
 
 # 设置C++17标准
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+
+if(HAVE_CUDA)
+    # 启用CUDA语言支持
+    enable_language(CUDA)
+
+    # 设置CUDA标准
+    set(CMAKE_CUDA_STANDARD 17)
+    set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+
+endif ()
 
 # 添加google test库
 FetchContent_Declare(
@@ -19,6 +29,8 @@ FetchContent_MakeAvailable(googletest)
 
 # 递归查找所有.cpp文件
 file(GLOB_RECURSE CPP_TEST_SOURCES "test_*.cpp")
+
+message(STATUS "CPP_TEST_SOURCES: ${CPP_TEST_SOURCES}")
 
 # 包含目录
 include_directories(${PROJECT_NAME} PRIVATE
@@ -35,11 +47,10 @@ if (DEFINED HAVE_CUDA)
 endif ()
 
 # 添加可执行文件
-add_executable(${PROJECT_NAME} ${CPP_TEST_SOURCES} ${CPP_SOURCES} ${CUDA_SOURCES})
+add_executable(${PROJECT_NAME} ${CPP_TEST_SOURCES} ${CPP_SOURCES} ${CPP_TOKENIZER_SOURCES} ${CUDA_SOURCES})
 
 # 链接库
 target_link_libraries(${PROJECT_NAME} PRIVATE
-        CUDA::cudart
         Eigen3::Eigen
         nlohmann_json::nlohmann_json
         tokenizers_cpp
