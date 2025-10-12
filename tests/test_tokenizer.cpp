@@ -1,13 +1,16 @@
 //
 // Created by B777B2056-2 on 2025/9/6.
 //
-
+#ifdef _WIN32
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+#include <cstdlib>
 #include <gtest/gtest.h>
 #include <unordered_map>
 #include "tokenizer/AutoTokenizer.h"
 
 TEST(TokenizerTest, EncodeDecode) {
-    fg42::AutoTokenizer tokenizer(R"(C:\Users\19373\Downloads)");
+    fg42::AutoTokenizer tokenizer(std::getenv("TOKENIZER_DIR"));
 
     std::string prompt = "What is the capital of Canada?";
     auto ids = tokenizer.encode(prompt);
@@ -17,7 +20,7 @@ TEST(TokenizerTest, EncodeDecode) {
 }
 
 TEST(TokenizerTest, ApplyChatTemplate) {
-    fg42::AutoTokenizer tokenizer(R"(C:\Users\19373\Downloads)");
+    fg42::AutoTokenizer tokenizer(std::getenv("TOKENIZER_DIR"));
 
     std::vector<std::unordered_map<std::string, std::string>> messages = {
     {{"role", "system"}, {"content", "You are a friendly chatbot who always responds in the style of a pirate"},},

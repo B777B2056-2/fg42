@@ -1,6 +1,10 @@
 //
 // Created by B777B2056-2 on 2025/9/6.
 //
+#ifdef _WIN32
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+#include <cstdlib>
 #include <vector>
 #include <unordered_set>
 #include <string>
@@ -46,7 +50,7 @@ static void model_test(fg42::AutoTokenizer& tokenizer, fg42::BaseModel* model) {
 }
 
 TEST(Qwen2Test, CPU) {
-    std::string model_dir = R"(C:\Users\19373\Downloads)";
+    std::string model_dir = std::getenv("QWEN2_MODEL_DIR");
 
     fg42::AutoTokenizer tokenizer(model_dir);
     fg42::Qwen2ForCausalLM model(model_dir, fg42::DeviceType::CPU,

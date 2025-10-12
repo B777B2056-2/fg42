@@ -18,6 +18,8 @@ endif()
 # 查找CUDA工具包（改为可选查找）
 find_package(CUDAToolkit QUIET)
 
+set(CUDAToolkit_FOUND false)
+
 # 根据CUDA是否可用设置宏和变量
 if(CUDAToolkit_FOUND)
     # 启用CUDA语言支持
