@@ -20,8 +20,7 @@ namespace fg42 {
 
         BaseModel() = delete;
         BaseModel(const std::string& dir_path, DeviceType device_type,
-            std::int32_t padding_idx, DataType data_type=DataType::Unknown,
-            KVCacheImpl kv_cache_impl=KVCacheImpl::Dynamic);
+            std::int32_t padding_idx, KVCacheImpl kv_cache_impl=KVCacheImpl::Dynamic);
         BaseModel(const BaseModel&) = delete;
         BaseModel& operator=(const BaseModel&) = delete;
         BaseModel(BaseModel&&) = delete;
@@ -41,8 +40,8 @@ namespace fg42 {
         KVCacheImpl kv_cache_impl_;
         std::unordered_map<std::size_t, bool> token_generate_status_;   // key为batch idx, value为是否生成完成
 
-        void load_model_config(const std::string& dir_path, DataType data_type);
-        void load_model_weights(const std::string& dir_path, DataType data_type);
+        void load_model_config(const std::string& dir_path);
+        void load_model_weights(const std::string& dir_path);
         [[nodiscard]] virtual bool weight_need_transpose(const std::string& key) const = 0;
         virtual Tensor forward(const Tensor& input) = 0;
 

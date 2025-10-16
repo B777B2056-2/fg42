@@ -591,29 +591,6 @@ namespace fg42::kernel {
             }
         }
     }
-
-    #define DATA_TYPE_SWITCH(ENUM_DATA_TYPE, TMPL_HANDLER, ...) \
-    {   \
-        switch (ENUM_DATA_TYPE) {    \
-        case DataType::Int8:    \
-            TMPL_HANDLER<std::int8_t>(__VA_ARGS__);   \
-            break;  \
-        case DataType::UInt8:   \
-            TMPL_HANDLER<std::uint8_t>(__VA_ARGS__);   \
-            break;  \
-        case DataType::Int32:   \
-            TMPL_HANDLER<std::int32_t>(__VA_ARGS__);   \
-            break;  \
-        case DataType::BF16:    \
-            TMPL_HANDLER<Eigen::bfloat16>(__VA_ARGS__);   \
-            break;  \
-        case DataType::FP32:    \
-            TMPL_HANDLER<float>(__VA_ARGS__);   \
-            break;  \
-        default:    \
-            throw std::runtime_error("unsupported data type");  \
-        }   \
-    }
 }
 
 #endif //FG42_KERNEL_IMPL_H

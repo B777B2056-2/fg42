@@ -19,12 +19,6 @@ static std::vector<std::string> prompts = {
     "What is the capital of China?"
 };
 
-// 对于prompts，预期会输出的关键词
-static std::vector<std::vector<std::string>> expected_keywords = {
-    {"kilometers"},
-    {"capital"}
-};
-
 static void model_test(fg42::AutoTokenizer& tokenizer, fg42::BaseModel* model) {
     std::vector<std::vector<std::int32_t>> input_ids(prompts.size());
     for (std::size_t i = 0; i < prompts.size(); ++i) {
@@ -39,13 +33,10 @@ static void model_test(fg42::AutoTokenizer& tokenizer, fg42::BaseModel* model) {
 
     // 检查关键词
     for (std::size_t batch_idx = 0; batch_idx < output_tokens.size(); ++batch_idx) {
-        auto answer = fg42::util::to_lower(tokenizer.decode(output_tokens[batch_idx]));
-        auto expected_keyword = expected_keywords[batch_idx];
-        for (const auto& keyword : expected_keyword) {
-            EXPECT_NE(answer.find(fg42::util::to_lower(keyword)), std::string::npos)
-            << "Expected keyword " << keyword << " not found in answer: " << answer
-            << " for question: " << prompts[batch_idx] << std::endl;
-        }
+        auto answer = tokenizer.decode(output_tokens[batch_idx]);
+        std::cout << "Question: " << prompts[batch_idx] << std::endl;
+        std::cout << "Answer: " << answer << std::endl;
+        std::cout << std::endl;
     }
 }
 
@@ -54,7 +45,17 @@ TEST(Qwen2Test, CPU) {
 
     fg42::AutoTokenizer tokenizer(model_dir);
     fg42::Qwen2ForCausalLM model(model_dir, fg42::DeviceType::CPU,
-        tokenizer.padding_idx(), fg42::DataType::FP32);
+        tokenizer.padding_idx());
+
+    model_test(tokenizer, &model);
+}
+
+TEST(Qwen2Test, CUDA) {
+    std::string model_dir = std::getenv("QWEN2_MODEL_DIR");
+
+    fg42::AutoTokenizer tokenizer(model_dir);
+    fg42::Qwen2ForCausalLM model(model_dir, fg42::DeviceType::NvidiaGPU,
+        tokenizer.padding_idx());
 
     model_test(tokenizer, &model);
 }

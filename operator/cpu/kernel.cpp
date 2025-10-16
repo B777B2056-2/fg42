@@ -4,28 +4,45 @@
 #include "util/util.h"
 #include "operator/cpu/kernel_impl.h"
 
+#define CPU_DATA_TYPE_SWITCH(ENUM_DATA_TYPE, TMPL_HANDLER, ...) \
+{   \
+    switch (ENUM_DATA_TYPE) {    \
+    case DataType::Int32:   \
+        TMPL_HANDLER<std::int32_t>(__VA_ARGS__);   \
+        break;  \
+    case DataType::BF16:    \
+        TMPL_HANDLER<Eigen::bfloat16>(__VA_ARGS__);   \
+        break;  \
+    case DataType::FP32:    \
+        TMPL_HANDLER<float>(__VA_ARGS__);   \
+        break;  \
+    default:    \
+        throw std::runtime_error("unsupported data type");  \
+    }   \
+}
+
 namespace fg42::kernel {
     Tensor add_kernel_cpu(const Tensor& input1, const Tensor& input2) {
         Tensor output(input1.data_type(), input1.device_type(), input1.shape());
 
         // 如果二者维度相同，直接相加
         if (Tensor::shape_equal(input1.shape(), input2.shape())) {
-            DATA_TYPE_SWITCH(input1.data_type(), add_kernel_cpu_impl, input1, input2, output);
+            CPU_DATA_TYPE_SWITCH(input1.data_type(), add_kernel_cpu_impl, input1, input2, output);
         } else {
-            DATA_TYPE_SWITCH(input1.data_type(), boardcast_add_kernel_cpu_impl, input1, input2, output);
+            CPU_DATA_TYPE_SWITCH(input1.data_type(), boardcast_add_kernel_cpu_impl, input1, input2, output);
         }
         return output;
     }
 
     Tensor negate_kernel_cpu(const Tensor& input) {
         Tensor output(input.data_type(), input.device_type(), input.shape());
-        DATA_TYPE_SWITCH(input.data_type(), negated_kernel_cpu_impl, input, output);
+        CPU_DATA_TYPE_SWITCH(input.data_type(), negated_kernel_cpu_impl, input, output);
         return output;
     }
 
     Tensor vec_outer_kernel_cpu(const Tensor& input1, const Tensor& input2) {
         Tensor output(input1.data_type(), input1.device_type(), {input1.shape().at(0), input2.shape().at(0)});
-        DATA_TYPE_SWITCH(input1.data_type(), vec_outer_kernel_cpu_impl, input1, input2, output);
+        CPU_DATA_TYPE_SWITCH(input1.data_type(), vec_outer_kernel_cpu_impl, input1, input2, output);
         return output;
     }
 
@@ -34,9 +51,9 @@ namespace fg42::kernel {
 
         // 如果二者维度相同，直接相乘
         if (Tensor::shape_equal(input1.shape(), input2.shape())) {
-            DATA_TYPE_SWITCH(input1.data_type(), mul_kernel_cpu_impl, input1, input2, output);
+            CPU_DATA_TYPE_SWITCH(input1.data_type(), mul_kernel_cpu_impl, input1, input2, output);
         } else {
-            DATA_TYPE_SWITCH(input1.data_type(), boardcast_mul_kernel_cpu_impl, input1, input2, output);
+            CPU_DATA_TYPE_SWITCH(input1.data_type(), boardcast_mul_kernel_cpu_impl, input1, input2, output);
         }
 
         return output;
@@ -44,7 +61,7 @@ namespace fg42::kernel {
 
     Tensor mul_with_constant_value_kernel_cpu(float value, const Tensor& input2) {
         Tensor output(input2.data_type(), input2.device_type(), input2.shape());
-        DATA_TYPE_SWITCH(input2.data_type(), mul_with_constant_kernel_cpu_impl, input2, output, value);
+        CPU_DATA_TYPE_SWITCH(input2.data_type(), mul_with_constant_kernel_cpu_impl, input2, output, value);
         return output;
     }
 
@@ -67,7 +84,7 @@ namespace fg42::kernel {
         const std::size_t n_cols_1 = shape1.at(1);
         const std::size_t n_cols_2 = shape2.at(1);
 
-        DATA_TYPE_SWITCH(input1.data_type(), matmul_kernel_cpu_impl,
+        CPU_DATA_TYPE_SWITCH(input1.data_type(), matmul_kernel_cpu_impl,
             input1, input2, output, n_rows_1, n_cols_1, n_cols_2);
 
         return output;
@@ -96,7 +113,7 @@ namespace fg42::kernel {
         }
 
         // 矩阵批量点乘
-        DATA_TYPE_SWITCH(input1.data_type(), batch_matmul_kernel_cpu_impl,
+        CPU_DATA_TYPE_SWITCH(input1.data_type(), batch_matmul_kernel_cpu_impl,
             input1, input2, output);
         return output;
     }
@@ -113,7 +130,7 @@ namespace fg42::kernel {
             const std::size_t n_rows = shape.at(0);
             const std::size_t n_cols = shape.at(1);
             Tensor output(input.data_type(), input.device_type(), {n_cols, n_rows});
-            DATA_TYPE_SWITCH(input.data_type(), matrix_transpose_kernel_cpu_impl, input, output, n_rows, n_cols);
+            CPU_DATA_TYPE_SWITCH(input.data_type(), matrix_transpose_kernel_cpu_impl, input, output, n_rows, n_cols);
             return output;
         }
 
@@ -123,11 +140,11 @@ namespace fg42::kernel {
         Tensor output(input.data_type(), input.device_type(), new_shape);
 
         if (shape.size() == 3) {
-            DATA_TYPE_SWITCH(input.data_type(), transpose_3d_tensor_kernel_cpu_impl, input, output, dim0, dim1);
+            CPU_DATA_TYPE_SWITCH(input.data_type(), transpose_3d_tensor_kernel_cpu_impl, input, output, dim0, dim1);
         } else if (shape.size() == 4) {
-            DATA_TYPE_SWITCH(input.data_type(), transpose_4d_tensor_kernel_cpu_impl, input, output, dim0, dim1);
+            CPU_DATA_TYPE_SWITCH(input.data_type(), transpose_4d_tensor_kernel_cpu_impl, input, output, dim0, dim1);
         } else if (shape.size() == 5) {
-            DATA_TYPE_SWITCH(input.data_type(), transpose_5d_tensor_kernel_cpu_impl, input, output, dim0, dim1);
+            CPU_DATA_TYPE_SWITCH(input.data_type(), transpose_5d_tensor_kernel_cpu_impl, input, output, dim0, dim1);
         }
         return output;
     }
@@ -141,7 +158,7 @@ namespace fg42::kernel {
          // 设置输出张量维度
          Tensor output(weight_tensor->data_type(), weight_tensor->device_type(),
              {batch_size, seq_length, embedding_dim});
-        DATA_TYPE_SWITCH(weight_tensor->data_type(), embedding_kernel_cpu_impl,
+        CPU_DATA_TYPE_SWITCH(weight_tensor->data_type(), embedding_kernel_cpu_impl,
              weight_tensor, input_tensor, output);
          return output;
     }
@@ -153,7 +170,7 @@ namespace fg42::kernel {
         auto head_dim = x.shape().at(3);
         std::vector<std::size_t> output_shape({batch, num_kv_heads * n_rep, seq_len, head_dim});
         Tensor output(x.data_type(), x.device_type(), output_shape);
-        DATA_TYPE_SWITCH(x.data_type(), repeat_kv_cpu_impl, x, output, n_rep);
+        CPU_DATA_TYPE_SWITCH(x.data_type(), repeat_kv_cpu_impl, x, output, n_rep);
         return output;
     }
 
@@ -162,11 +179,11 @@ namespace fg42::kernel {
 
         Tensor output(input.data_type(), input.device_type(), input.shape());
         if (shape.size() == 1) {
-            DATA_TYPE_SWITCH(input.data_type(), matrix_softmax_kernel_cpu_impl, input, output, 1, shape.back(), t);
+            CPU_DATA_TYPE_SWITCH(input.data_type(), matrix_softmax_kernel_cpu_impl, input, output, 1, shape.back(), t);
         } else if (shape.size() == 2) {
             const std::size_t n_rows = shape.at(0);
             const std::size_t n_cols = shape.at(1);
-            DATA_TYPE_SWITCH(input.data_type(), matrix_softmax_kernel_cpu_impl, input, output, n_rows, n_cols, t);
+            CPU_DATA_TYPE_SWITCH(input.data_type(), matrix_softmax_kernel_cpu_impl, input, output, n_rows, n_cols, t);
         } else if (shape.size() > 2) {
             // 1. 转换为大的二维矩阵
             std::size_t n_rows = 1;
@@ -175,7 +192,7 @@ namespace fg42::kernel {
             }
             const std::size_t n_cols = shape.back();
             // 2. 调用二维矩阵的softmax实现
-            DATA_TYPE_SWITCH(input.data_type(), matrix_softmax_kernel_cpu_impl, input, output, n_rows, n_cols, t);
+            CPU_DATA_TYPE_SWITCH(input.data_type(), matrix_softmax_kernel_cpu_impl, input, output, n_rows, n_cols, t);
         } else {
             throw std::runtime_error("unsupported shape for softmax");
         }
@@ -186,13 +203,13 @@ namespace fg42::kernel {
         const auto& shape = input.shape();
 
         Tensor output(input.data_type(), input.device_type(), input.shape());
-        DATA_TYPE_SWITCH(input.data_type(), vec_silu_kernel_cpu_impl, input, output);
+        CPU_DATA_TYPE_SWITCH(input.data_type(), vec_silu_kernel_cpu_impl, input, output);
         return output;
     }
 
     Tensor rme_norm_kernel_cpu(const Tensor& input, float eps) {
         Tensor output(input.data_type(), input.device_type(), input.shape());
-        DATA_TYPE_SWITCH(input.data_type(), rme_norm_kernel_cpu_impl, input, output, eps);
+        CPU_DATA_TYPE_SWITCH(input.data_type(), rme_norm_kernel_cpu_impl, input, output, eps);
         return output;
     }
 
@@ -208,7 +225,7 @@ namespace fg42::kernel {
             void* data = (shape.size() == 1) ? input.raw_ptr() : input.data({b});
             Tensor row_view = (shape.size() == 1) ? input.view() : input.view({1, n_col}, data);
             Tensor output_view = output.view({1, n}, output.data({b}));
-            DATA_TYPE_SWITCH(input.data_type(), find_max_k_idx_in_row, row_view, output_view);
+            CPU_DATA_TYPE_SWITCH(input.data_type(), find_max_k_idx_in_row, row_view, output_view);
         }
         return output;
     }
@@ -224,20 +241,20 @@ namespace fg42::kernel {
 
         Tensor input_view = input.view(view_shape);
         Tensor output(input.data_type(), input.device_type(), view_shape);
-        DATA_TYPE_SWITCH(input.data_type(), rotate_half_impl, input_view, output);
+        CPU_DATA_TYPE_SWITCH(input.data_type(), rotate_half_impl, input_view, output);
         output.reshape(input.shape());
         return output;
     }
 
     Tensor cos_kernel_cpu(const Tensor& input) {
         Tensor output(input.data_type(), input.device_type(), input.shape());
-        DATA_TYPE_SWITCH(input.data_type(), cosine_impl, input, output);
+        CPU_DATA_TYPE_SWITCH(input.data_type(), cosine_impl, input, output);
         return output;
     }
 
     Tensor sin_kernel_cpu(const Tensor& input) {
         Tensor output(input.data_type(), input.device_type(), input.shape());
-        DATA_TYPE_SWITCH(input.data_type(), sine_impl, input, output);
+        CPU_DATA_TYPE_SWITCH(input.data_type(), sine_impl, input, output);
         return output;
     }
 
@@ -246,7 +263,7 @@ namespace fg42::kernel {
         new_shape.back() = x1.shape().back() + x2.shape().back();
 
         Tensor output(x1.data_type(), x1.device_type(), new_shape);
-        DATA_TYPE_SWITCH(x1.data_type(), concat_by_col_wise, x1, x2, output);
+        CPU_DATA_TYPE_SWITCH(x1.data_type(), concat_by_col_wise, x1, x2, output);
         return output;
     }
 
@@ -255,20 +272,21 @@ namespace fg42::kernel {
         new_shape[new_shape.size() - 2] = x1.shape()[x1.shape().size() - 2] + x2.shape()[x2.shape().size() - 2];
 
         Tensor output(x1.data_type(), x1.device_type(), new_shape);
-        DATA_TYPE_SWITCH(x1.data_type(), concat_by_row_wise, x1, x2, output);
+        CPU_DATA_TYPE_SWITCH(x1.data_type(), concat_by_row_wise, x1, x2, output);
         return output;
     }
 
     Tensor causal_mask_kernel_cpu(DataType data_type, std::size_t l, std::size_t s) {
         Tensor output(data_type, fg42::DeviceType::CPU, {l, s});
-        DATA_TYPE_SWITCH(data_type, causal_mask_impl, l, s, output);
+        CPU_DATA_TYPE_SWITCH(data_type, causal_mask_impl, l, s, output);
         return output;
     }
 
     Tensor multinomial_kernel_cpu(const Tensor& x, std::size_t num_samples,
         const std::function<std::size_t(std::size_t)>& row_end_pos) {
         Tensor output(fg42::DataType::Int32, x.device_type(), {x.shape().at(0), num_samples});
-        DATA_TYPE_SWITCH(x.data_type(), multinomial_impl, x, output, row_end_pos);
+        CPU_DATA_TYPE_SWITCH(x.data_type(), multinomial_impl, x, output, row_end_pos);
         return output;
     }
+#undef CPU_DATA_TYPE_SWITCH
 }

@@ -22,7 +22,7 @@ namespace fg42 {
         virtual ~BaseWeightsLoader() = default;
 
         virtual void load(const std::filesystem::path& path,
-            StateDict& state_dict, DeviceType device_type, DataType data_type) = 0;
+            StateDict& state_dict, DeviceType device_type) = 0;
 
         void set_weight_need_transpose_func(std::function<bool(const std::string&)> func) {
             weight_need_transpose_func_ = std::move(func);

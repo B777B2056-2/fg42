@@ -111,12 +111,6 @@ namespace fg42 {
         // 按行拷贝（仅限二维张量）
         void copy_from(const Tensor& vec_tensor, std::size_t target_row);
 
-        // 转换为FP32
-        [[nodiscard]] Tensor to_float() const;
-
-        // 转换为BF16
-        [[nodiscard]] Tensor to_bf16() const;
-
         // 检测两张量shape是否一致
         static bool shape_equal(const std::vector<std::size_t>& a, const std::vector<std::size_t>& b);
 

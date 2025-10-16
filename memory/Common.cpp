@@ -1,6 +1,7 @@
 //
 // Created by B777B2056-2 on 2025/9/4.
 //
+#include <cstring>
 #include <memory>
 #include <stdexcept>
 #ifdef HAVE_CUDA
@@ -8,7 +9,6 @@
     #include <cuda_runtime.h>
     #include "memory/NvidiaGPUMemoryAllocator.h"
 #endif
-
 #include "memory/Common.h"
 #include "memory/CPUMemoryAllocator.h"
 

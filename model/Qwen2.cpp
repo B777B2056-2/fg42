@@ -1,20 +1,17 @@
 //
 // Created by B777B2056-2 on 2025/9/5.
 //
-#include "model/Qwen2.h"
 #include <algorithm>
-#include <iostream>
-
-#include "Eigen/Core"
+#include "model/Qwen2.h"
 #include "sampler/Sampler.h"
 
 namespace fg42 {
     Qwen2ForCausalLM::Qwen2ForCausalLM(const std::string& dir_path, DeviceType device_type,
-            std::int32_t padding_idx, DataType data_type, KVCacheImpl kv_cache_impl)
-        : BaseModel(dir_path, device_type, padding_idx, data_type, kv_cache_impl),
+            std::int32_t padding_idx, KVCacheImpl kv_cache_impl)
+        : BaseModel(dir_path, device_type, padding_idx, kv_cache_impl),
         embedding_layer_(model_config_), norm_layer_(model_config_, "norm"),
         lm_head_layer_(model_config_, embedding_layer_) {
-        this->load_model_weights(dir_path, data_type);
+        this->load_model_weights(dir_path);
         this->init_weights();
     }
 

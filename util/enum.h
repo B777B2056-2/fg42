@@ -15,8 +15,6 @@ namespace fg42 {
 
     enum class DataType : std::uint8_t {
         Unknown = 0,
-        Int8 = 10,
-        UInt8 = 11,
         Int32 = 12,
         BF16 = 20,
         FP32 = 30,
@@ -24,10 +22,6 @@ namespace fg42 {
 
     inline std::size_t data_type_size(DataType data_type) {
         switch (data_type) {
-        case DataType::Int8:
-            return sizeof(std::int8_t);
-        case DataType::UInt8:
-            return sizeof(std::uint8_t);
         case DataType::Int32:
             return sizeof(std::int32_t);
         case DataType::BF16:

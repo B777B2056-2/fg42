@@ -14,8 +14,7 @@ namespace fg42 {
     public:
         Qwen2ForCausalLM() = delete;
         Qwen2ForCausalLM(const std::string& dir_path, DeviceType device_type,
-            std::int32_t padding_idx, DataType data_type=DataType::Unknown,
-            KVCacheImpl kv_cache_impl=KVCacheImpl::Dynamic);
+            std::int32_t padding_idx, KVCacheImpl kv_cache_impl=KVCacheImpl::Dynamic);
         ~Qwen2ForCausalLM() override = default;
 
     private:

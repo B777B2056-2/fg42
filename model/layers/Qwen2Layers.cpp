@@ -12,7 +12,6 @@
 #include "operator/EmbeddingOperator.h"
 #include "operator/NormOperator.h"
 #include "util/util.h"
-#include "Eigen/Core"
 
 namespace fg42 {
     Qwen2EmbeddingLayer::Qwen2EmbeddingLayer(const ModelConfig &model_config)
@@ -117,7 +116,7 @@ namespace fg42 {
         auto cos = std::get<0>(cos_sin);
         auto sin = std::get<1>(cos_sin);
 
-        auto embed_func = [this, &cos, &sin](const Tensor& x) -> fg42::Tensor {
+        auto embed_func = [this, &cos, &sin](const Tensor& x) -> Tensor {
             auto mul_tensor = x.mul(cos);
             auto rotate_half_tensor = rotate_half(x);
             auto rotate_half_mul_tensor = rotate_half_tensor.mul(sin);

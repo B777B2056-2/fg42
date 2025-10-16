@@ -3,6 +3,7 @@
 //
 #include "model/weights_loaders/BaseWeightsLoader.h"
 #if defined(__linux__) || defined(__APPLE__)
+#include <cstring>
 extern "C" {
 #include <sys/mman.h>
 #include <fcntl.h>

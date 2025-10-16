@@ -5,32 +5,20 @@
 #include "memory/Common.h"
 #include "operator/ArithmeticOperator.h"
 #include "tensor/Tensor.h"
-
-#include <fstream>
-
+#ifdef HAVE_CUDA
+#include <cuda_bf16.h>
+#endif
 #include "Eigen/Core"
 #include "util/util.h"
 
 namespace fg42 {
-    static void memcpy_with_data_type(DeviceType device_type, void *dst, DataType data_type, float val) {
+    static void memcpy_with_data_type(DeviceType device_type, void* dst, DataType data_type, float val) {
         PtrDeviceWrapper dst_wrapper(device_type, dst);
         std::size_t byte_size = fg42::data_type_size(data_type);
         switch (data_type) {
-            case DataType::Int8: {
-                auto src_val = static_cast<std::int8_t>(val);
-                PtrDeviceWrapper src_wrapper(device_type, &src_val);
-                fg42::memcpy_between_device(dst_wrapper, src_wrapper, byte_size);
-            }
-                break;
-            case DataType::UInt8:{
-                auto src_val = static_cast<std::uint8_t>(val);
-                PtrDeviceWrapper src_wrapper(device_type, &src_val);
-                fg42::memcpy_between_device(dst_wrapper, src_wrapper, byte_size);
-            }
-                break;
             case DataType::Int32: {
                 auto src_val = static_cast<std::int32_t>(val);
-                PtrDeviceWrapper src_wrapper(device_type, &src_val);
+                PtrDeviceWrapper src_wrapper(DeviceType::CPU, &src_val);
                 fg42::memcpy_between_device(dst_wrapper, src_wrapper, byte_size);
             }
                 break;
@@ -38,19 +26,19 @@ namespace fg42 {
                 if (device_type == DeviceType::NvidiaGPU) {
 #ifdef HAVE_CUDA
                     auto src_val = static_cast<__nv_bfloat16>(val);
-                    PtrDeviceWrapper src_wrapper(device_type, &src_val);
+                    PtrDeviceWrapper src_wrapper(DeviceType::CPU, &src_val);
                     fg42::memcpy_between_device(dst_wrapper, src_wrapper, byte_size);
 #endif
                 } else if (device_type == DeviceType::CPU) {
                     auto src_val = static_cast<Eigen::bfloat16>(val);
-                    PtrDeviceWrapper src_wrapper(device_type, &src_val);
+                    PtrDeviceWrapper src_wrapper(DeviceType::CPU, &src_val);
                     fg42::memcpy_between_device(dst_wrapper, src_wrapper, byte_size);
                 }
             }
                 break;
             case DataType::FP32:{
                 auto src_val = static_cast<float>(val);
-                PtrDeviceWrapper src_wrapper(device_type, &src_val);
+                PtrDeviceWrapper src_wrapper(DeviceType::CPU, &src_val);
                 fg42::memcpy_between_device(dst_wrapper, src_wrapper, byte_size);
             }
                 break;
@@ -371,80 +359,6 @@ namespace fg42 {
         PtrDeviceWrapper dst(this->device_type(), this->data({target_row, 0}));
         PtrDeviceWrapper src(vec_tensor.device_type(), vec_tensor.raw_ptr());
         fg42::memcpy_between_device(dst, src, vec_tensor.bytes_size());
-    }
-
-    Tensor Tensor::to_float() const {
-        if (this->data_type() == DataType::FP32) {
-            return *this;
-        }
-
-        Tensor t(DataType::FP32, this->device_type(), this->shape());
-        for (std::size_t i = 0; i < this->size(); i++) {
-            float val = 0.0f;
-            switch (this->data_type()) {
-                case DataType::BF16: {
-                    switch (device_type()) {
-                        case DeviceType::CPU: {
-                            val = static_cast<float>(*(static_cast<Eigen::bfloat16*>(this->raw_ptr())+i));
-                        }
-                            break;
-#ifdef HAVE_CUDA
-                        case DeviceType::NvidiaGPU: {
-                            val = static_cast<float>(*(static_cast<__nv_bfloat16*>(this->raw_ptr())+i));
-                        }
-                            break;
-#endif
-                        default:
-                            throw std::invalid_argument("unsupported device type");
-                    }
-                }
-                    break;
-                default:
-                    throw std::invalid_argument("unsupported data type to convert float");
-            }
-
-            PtrDeviceWrapper dst(this->device_type(), static_cast<float*>(t.raw_ptr())+i);
-            PtrDeviceWrapper src(this->device_type(), &val);
-            fg42::memcpy_between_device(dst, src, sizeof(float));
-        }
-        return t;
-    }
-
-    Tensor Tensor::to_bf16() const {
-        if (this->data_type() == DataType::BF16) {
-            return *this;
-        }
-
-        Tensor t(DataType::BF16, this->device_type(), this->shape());
-        for (std::size_t i = 0; i < this->size(); i++) {
-            float val = 0.0f;
-            switch (this->data_type()) {
-                case DataType::FP32: {
-                    switch (device_type()) {
-                        case DeviceType::CPU: {
-                            val = static_cast<Eigen::bfloat16>(*(static_cast<float*>(this->raw_ptr())+i));
-                        }
-                            break;
-#ifdef HAVE_CUDA
-                        case DeviceType::NvidiaGPU: {
-                            val = static_cast<__nv_bfloat16>(*(static_cast<float*>(this->raw_ptr())+i));
-                        }
-                            break;
-#endif
-                        default:
-                            throw std::invalid_argument("unsupported device type");
-                    }
-                }
-                    break;
-                default:
-                    throw std::invalid_argument("unsupported data type to convert bf16");
-            }
-
-            PtrDeviceWrapper dst(this->device_type(), static_cast<float*>(t.raw_ptr())+i);
-            PtrDeviceWrapper src(this->device_type(), &val);
-            fg42::memcpy_between_device(dst, src, sizeof(float));
-        }
-        return t;
     }
 
     // 检测两张量shape是否一致

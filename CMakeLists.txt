@@ -8,17 +8,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Windows下特殊编译命令
-if (MSVC)
-    add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
-    add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
-    add_compile_options(/bigobj)
-endif()
-
 # 查找CUDA工具包（改为可选查找）
 find_package(CUDAToolkit QUIET)
-
-set(CUDAToolkit_FOUND false)
 
 # 根据CUDA是否可用设置宏和变量
 if(CUDAToolkit_FOUND)
@@ -29,17 +20,29 @@ if(CUDAToolkit_FOUND)
     set(CMAKE_CUDA_STANDARD 17)
     set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
+    # 设置CUDA架构
+    set(CUDA_ARCHITECTURES 50 61 75 76 80 86)
+
     # 定义HAVE_CUDA宏
     add_definitions(-DHAVE_CUDA)
 
     # 递归查找所有.cu文件（CUDA源文件）
     file(GLOB_RECURSE CUDA_SOURCES "operator/cuda/*.cu")
 
-    # 设置CUDA架构
-    set(CUDA_ARCHITECTURES "50;61;75;80;86")
+    if (MSVC)
+        add_compile_options("$<$<C_COMPILER_ID:MSVC>:-Xcompiler=/utf-8>")
+        add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:-Xcompiler=/utf-8>")
+        add_compile_options(/bigobj)
+    endif()
 else()
     # 没有CUDA时清空CUDA源文件列表
     set(CUDA_SOURCES "")
+
+    if (MSVC)
+        add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
+        add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
+        add_compile_options(/bigobj)
+    endif()
 endif()
 
 # 下载Eigen3.4库

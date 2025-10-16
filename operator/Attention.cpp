@@ -1,17 +1,11 @@
 //
 // Created by B777B2056-2 on 2025/9/13.
 //
-#include "Eigen/Core"
 #include "operator/Attention.h"
-
-#include <fstream>
-#include <iostream>
-
 #include "Factory.h"
 #include "operator/ArithmeticOperator.h"
 #include "operator/ActivationOperator.h"
 #include "memory/BaseAllocator.h"
-#include "memory/Common.h"
 
 namespace fg42::kernel {
     BaseAttention::BaseAttention(const Tensor *wq, const Tensor *wk, const Tensor *wv,

@@ -7,7 +7,7 @@
 namespace fg42 {
     // 加载safetensors格式的权重到内存(https://huggingface.co/docs/safetensors/index)
     void SafeTensorsLoader::load(const std::filesystem::path& dir_path,
-        StateDict& state_dict, DeviceType device_type, DataType data_type) {
+        StateDict& state_dict, DeviceType device_type) {
         // 寻找所有safetensors文件
         std::vector<std::string> safetensors_file_names;
         for (const auto& entry : std::filesystem::directory_iterator(dir_path)) {
@@ -21,7 +21,7 @@ namespace fg42 {
 
         for (const auto& file_name : safetensors_file_names) {
             const std::filesystem::path weights_file_path = dir_path / file_name;
-            this->read_one_safetensors(weights_file_path, state_dict, device_type, data_type);
+            this->read_one_safetensors(weights_file_path, state_dict, device_type);
         }
     }
 
@@ -39,7 +39,7 @@ namespace fg42 {
 
     void SafeTensorsLoader::read_data(WeightsFileReader& ifs,
         const nlohmann::ordered_json& header, StateDict& state_dict,
-        DeviceType device_type, DataType data_type) {
+        DeviceType device_type) {
         // 清空原数据
         state_dict.clear();
         // 计算有多少个Tensor，提前为map分配内存（-1是因为不需要__metadata__内的东西）
@@ -62,10 +62,6 @@ namespace fg42 {
                 real_data_type = DataType::FP32;
             } else if (tensor_d_type == "BF16") {
                 real_data_type = DataType::BF16;
-            } else if (tensor_d_type == "I8") {
-                real_data_type = DataType::Int8;
-            } else if (tensor_d_type == "U8") {
-                real_data_type = DataType::UInt8;
             }
 
             Tensor tensor(real_data_type, device_type, tensor_shape);
@@ -82,26 +78,13 @@ namespace fg42 {
             if (weight_need_transpose_func_ && weight_need_transpose_func_(tensor_name)) {
                 tensor = tensor.transpose();
             }
-            // 判断是否需要转换tensor类型
-            if ((data_type != DataType::Unknown) && (real_data_type != data_type)) {
-                switch (data_type) {
-                    case DataType::FP32:
-                        tensor = tensor.to_float();
-                        break;
-                    case DataType::BF16:
-                        tensor = tensor.to_bf16();
-                        break;
-                    default:
-                        throw std::runtime_error("Unsupported convert data type");
-                }
-            }
             // 存入权重map
             state_dict.emplace(tensor_name, tensor);
         }
     }
 
     void SafeTensorsLoader::read_one_safetensors(const std::filesystem::path& weights_file_path, StateDict& state_dict,
-        DeviceType device_type, DataType data_type) {
+        DeviceType device_type) {
         // 打开文件
         WeightsFileReader ifs(weights_file_path);
         if (!ifs.is_open()) {
@@ -110,6 +93,6 @@ namespace fg42 {
         // 读取文件头
         auto header = SafeTensorsLoader::read_header(ifs);
         // 读取数据部分
-        this->read_data(ifs, header, state_dict, device_type, data_type);
+        this->read_data(ifs, header, state_dict, device_type);
     }
 } // fg42

@@ -13,6 +13,7 @@
 #include "operator/NormOperator.h"
 #include "Eigen/Core"
 #ifdef HAVE_CUDA
+#include <cuda_bf16.h>
 #include "memory/NvidiaGPUMemoryAllocator.h"
 #endif
 
@@ -75,16 +76,6 @@ bool is_tensor_equal(const fg42::Tensor& a, const fg42::Tensor& b) {
                     return false;
                 }
                 break;
-            case fg42::DataType::Int8:
-                if (*static_cast<std::int8_t*>(a_ptr) != *static_cast<std::int8_t*>(b_ptr)) {
-                    return false;
-                }
-                break;
-            case fg42::DataType::UInt8:
-                if (*static_cast<std::uint8_t*>(a_ptr) != *static_cast<std::uint8_t*>(b_ptr)) {
-                    return false;
-                }
-                break;
             default:
                 throw std::runtime_error("Unsupported data type");
         }
@@ -100,10 +91,6 @@ fg42::DataType get_data_type_enum(const std::string& data_type) {
         d_type = fg42::DataType::BF16;
     } else if (data_type == "int32") {
         d_type = fg42::DataType::Int32;
-    } else if (data_type == "int8") {
-        d_type = fg42::DataType::Int8;
-    } else if (data_type == "uint8") {
-        d_type = fg42::DataType::UInt8;
     } else {
         throw std::runtime_error("Unsupported data type");
     }
@@ -170,22 +157,6 @@ fg42::Tensor make_tensor_from_json(const nlohmann::json& json,
             fg42::memcpy_between_device(dst, src, bytes);
             break;
         }
-        case fg42::DataType::Int8: {
-            auto data = json["data"].get<std::vector<std::int8_t>>();
-            auto bytes = data.size() * fg42::data_type_size(d_type);
-            fg42::PtrDeviceWrapper dst(device_type, tensor.raw_ptr());
-            fg42::PtrDeviceWrapper src(fg42::DeviceType::CPU, data.data());
-            fg42::memcpy_between_device(dst, src, bytes);
-            break;
-        }
-        case fg42::DataType::UInt8: {
-            auto data = json["data"].get<std::vector<std::uint8_t>>();
-            auto bytes = data.size() * fg42::data_type_size(d_type);
-            fg42::PtrDeviceWrapper dst(device_type, tensor.raw_ptr());
-            fg42::PtrDeviceWrapper src(fg42::DeviceType::CPU, data.data());
-            fg42::memcpy_between_device(dst, src, bytes);
-            break;
-        }
         default:
             throw std::runtime_error("Unsupported data type");
     }
@@ -224,7 +195,7 @@ OperatorTester::OperatorTester(const std::string& global_data_type,
 
 std::string OperatorTester::error_message() const {
     std::stringstream ss;
-    ss << name_ << " test failed on " << std::endl;
+    ss << " test failed on " << name_ << std::endl;
     return ss.str();
 }
 
@@ -234,6 +205,7 @@ bool OperatorTester::test() {
         op_inputs.push_back(&tensor);
     }
     auto output = op_->forward(op_inputs, nullptr);
+    output.to_device(fg42::DeviceType::CPU);
 
     bool is_correct = is_tensor_equal(output, expected_output_);
     return is_correct;
@@ -370,6 +342,7 @@ void OperatorTester::set_expected_output(const std::string& global_data_type, co
     }
 
     expected_output_ = make_tensor_from_json(expected_output_json, data_type, device_type_);
+    expected_output_.to_device(fg42::DeviceType::CPU);
 }
 
 const fg42::Tensor& OperatorTester::get_input_by_name(const std::string& name) const {

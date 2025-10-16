@@ -10,12 +10,12 @@ namespace fg42 {
     namespace fs = std::filesystem;
 
     BaseModel::BaseModel(const std::string& dir_path, DeviceType device_type,
-        std::int32_t padding_idx, DataType data_type, KVCacheImpl kv_cache_impl)
+        std::int32_t padding_idx, KVCacheImpl kv_cache_impl)
     : device_type_(device_type), padding_idx_(padding_idx), kv_cache_impl_(kv_cache_impl) {
-        this->load_model_config(dir_path, data_type);
+        this->load_model_config(dir_path);
     }
 
-    void BaseModel::load_model_config(const std::string& dir_path, DataType data_type) {
+    void BaseModel::load_model_config(const std::string& dir_path) {
         fs::path dir = dir_path;
         fs::path config_path = dir / "config.json";
         auto config_file_path = dir / config_path;
@@ -49,23 +49,15 @@ namespace fg42 {
         this->model_config_.rope_theta = raw_model_config_["rope_theta"].get<float>();
         this->model_config_.use_cache = raw_model_config_["use_cache"].get<bool>();
 
-        if (data_type == DataType::Unknown) {
-            auto torch_dtype = raw_model_config_["torch_dtype"].get<std::string>();
-            if (torch_dtype == "bfloat16") {
-                model_config_.data_type = DataType::BF16;
-            } else if (torch_dtype == "float32") {
-                model_config_.data_type = DataType::FP32;
-            } else if (torch_dtype == "int8") {
-                model_config_.data_type = DataType::Int8;
-            }  else if (torch_dtype == "uint8") {
-                model_config_.data_type = DataType::UInt8;
-            } else if (torch_dtype == "int32") {
-                model_config_.data_type = DataType::Int32;
-            } else {
-                throw std::runtime_error("Unsupported torch_dtype: " + torch_dtype);
-            }
+        auto torch_dtype = raw_model_config_["torch_dtype"].get<std::string>();
+        if (torch_dtype == "bfloat16") {
+            model_config_.data_type = DataType::BF16;
+        } else if (torch_dtype == "float32") {
+            model_config_.data_type = DataType::FP32;
+        } else if (torch_dtype == "int32") {
+            model_config_.data_type = DataType::Int32;
         } else {
-            model_config_.data_type = data_type;
+            throw std::runtime_error("Unsupported torch_dtype: " + torch_dtype);
         }
 
         // 按需初始化kv cache实例
@@ -74,7 +66,7 @@ namespace fg42 {
         }
     }
 
-    void BaseModel::load_model_weights(const std::string& path, DataType data_type) {
+    void BaseModel::load_model_weights(const std::string& path) {
         auto* loader = model_weights_loader_factory(path);
         if (loader == nullptr) {
             throw std::runtime_error("Could not load model weights from dir: " + path);
@@ -82,7 +74,7 @@ namespace fg42 {
         loader->set_weight_need_transpose_func([this](const std::string& key)->bool {
             return this->weight_need_transpose(key);
         });
-        loader->load(path, this->state_dict_, this->device_type_, data_type);
+        loader->load(path, this->state_dict_, this->device_type_);
     }
 
     std::vector<std::vector<std::int32_t>> BaseModel::generate(SamplerConfig sampler_config,
@@ -93,7 +85,7 @@ namespace fg42 {
         this->left_padding(after_padding);
 
         // 2. 转为Tensor
-        Tensor input_ids_batch(DataType::Int32, DeviceType::CPU,
+        Tensor input_ids_batch(DataType::Int32, device_type_,
         {after_padding.size(), after_padding[0].size()});
         for (std::size_t i = 0; i < after_padding.size(); ++i) {
             for (std::size_t j = 0; j < after_padding[i].size(); ++j) {
@@ -130,8 +122,8 @@ namespace fg42 {
         Tensor last_logits(outputs.data_type(), outputs.device_type(), {batch_size, vocab_size});
         for (std::size_t i = 0; i < batch_size; ++i) {
             void* data = outputs.data({i, seq_len - 1});
-            Tensor last_logits_batch = outputs.view({vocab_size}, data);
-            last_logits.copy_from(last_logits_batch, i);
+            Tensor last_logits_vec = outputs.view({vocab_size}, data);
+            last_logits.copy_from(last_logits_vec, i);
         }
 
         // 2. 通过采样器，获取next_token：(batch_size, 1)

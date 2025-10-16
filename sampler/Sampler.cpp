@@ -1,9 +1,9 @@
 //
 // Created by B777B2056-2 on 2025/9/19.
 //
-#include "sampler/Sampler.h"
 #include <random>
 #include <functional>
+#include "sampler/Sampler.h"
 #include "operator/ArithmeticOperator.h"
 
 namespace fg42 {

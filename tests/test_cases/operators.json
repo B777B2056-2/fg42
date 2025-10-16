@@ -11,7 +11,7 @@
         },
         "category": "arithmetic",
         "description": "带广播的加法运算",
-        "data_types": ["int8", "uint8", "int32", "bf16", "fp32"],
+        "data_types": ["int32", "bf16", "fp32"],
         "inputs": [
           {
             "name": "input_a",
@@ -39,7 +39,7 @@
         },
         "category": "arithmetic",
         "description": "取负运算",
-        "data_types": ["int8", "int32", "bf16", "fp32"],
+        "data_types": ["int32", "bf16", "fp32"],
         "inputs": [
           {
             "name": "input",
@@ -61,7 +61,7 @@
         },
         "category": "arithmetic",
         "description": "外积运算",
-        "data_types": ["int8", "uint8", "int32", "bf16", "fp32"],
+        "data_types": ["int32", "bf16", "fp32"],
         "inputs": [
           {
             "name": "input_a",
@@ -89,7 +89,7 @@
         },
         "category": "arithmetic",
         "description": "逐元素乘法运算",
-        "data_types": ["int8", "uint8", "int32", "bf16", "fp32"],
+        "data_types": ["int32", "bf16", "fp32"],
         "inputs": [
           {
             "name": "input_a",
@@ -117,7 +117,7 @@
         },
         "category": "linear_algebra",
         "description": "矩阵乘法",
-        "data_types": ["int8", "uint8", "int32", "bf16", "fp32"],
+        "data_types": ["int32", "bf16", "fp32"],
         "inputs": [
           {
             "name": "input_a",
@@ -147,7 +147,7 @@
         },
         "category": "shape_manipulation",
         "description": "转置最后两个维度",
-        "data_types": ["int8", "uint8", "int32", "bf16", "fp32"],
+        "data_types": ["int32", "bf16", "fp32"],
         "inputs": [
           {
             "name": "input",
@@ -171,7 +171,7 @@
         },
         "category": "shape_manipulation",
         "description": "转置最前面两个维度",
-        "data_types": ["int8", "uint8", "int32", "bf16", "fp32"],
+        "data_types": ["int32", "bf16", "fp32"],
         "inputs": [
           {
             "name": "input",
@@ -194,7 +194,7 @@
         },
         "category": "reduction",
         "description": "求最大值索引",
-        "data_types": ["int8", "uint8", "int32", "bf16", "fp32"],
+        "data_types": ["int32", "bf16", "fp32"],
         "inputs": [
           {
             "name": "input",
@@ -215,7 +215,7 @@
           "name": "rotate_half"
         },
         "description": "rope编码翻转",
-        "data_types": ["int8", "uint8", "int32", "bf16", "fp32"],
+        "data_types": ["int32", "bf16", "fp32"],
         "inputs": [
           {
             "name": "input",
@@ -277,7 +277,7 @@
         "operator": {
           "name": "concat_by_row"
         },
-        "data_types": ["int8", "uint8", "int32", "bf16", "fp32"],
+        "data_types": ["int32", "bf16", "fp32"],
         "inputs": [
           {
             "name": "input_a",
@@ -304,7 +304,7 @@
         "operator": {
           "name": "concat_by_col"
         },
-        "data_types": ["int8", "uint8", "int32", "bf16", "fp32"],
+        "data_types": ["int32", "bf16", "fp32"],
         "inputs": [
           {
             "name": "input_a",
@@ -484,7 +484,7 @@
         },
         "category": "attention",
         "description": "缩放点积注意力",
-        "data_types": ["bf16", "fp32"],
+        "data_types": ["fp32"],
         "inputs": [
           {
             "name": "query",

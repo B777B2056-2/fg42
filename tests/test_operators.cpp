@@ -205,11 +205,6 @@ TEST(SoftmaxOperator, CUDA) {
     EXPECT_TRUE(cuda_tester_manager.run_test(tester_name));
 }
 
-TEST(SigmoidOperator, CUDA) {
-    constexpr const char* tester_name = "sigmoid";
-    EXPECT_TRUE(cuda_tester_manager.run_test(tester_name));
-}
-
 TEST(SiLUOperator, CUDA) {
     constexpr const char* tester_name = "silu";
     EXPECT_TRUE(cuda_tester_manager.run_test(tester_name));

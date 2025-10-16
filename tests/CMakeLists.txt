@@ -8,16 +8,6 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-if(HAVE_CUDA)
-    # 启用CUDA语言支持
-    enable_language(CUDA)
-
-    # 设置CUDA标准
-    set(CMAKE_CUDA_STANDARD 17)
-    set(CMAKE_CUDA_STANDARD_REQUIRED ON)
-
-endif ()
-
 # 添加google test库
 FetchContent_Declare(
         googletest
@@ -30,21 +20,14 @@ FetchContent_MakeAvailable(googletest)
 # 递归查找所有.cpp文件
 file(GLOB_RECURSE CPP_TEST_SOURCES "test_*.cpp")
 
-message(STATUS "CPP_TEST_SOURCES: ${CPP_TEST_SOURCES}")
-
 # 包含目录
 include_directories(${PROJECT_NAME} PRIVATE
         ..
         ${EIGEN3_INCLUDE_DIRS}
         ${JSON_INCLUDE_DIRS}
         ${JINJA2CPP_INCLUDE_DIRS}
+        ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
 )
-
-if (DEFINED HAVE_CUDA)
-    target_include_directories(${PROJECT_NAME} PRIVATE
-            ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
-    )
-endif ()
 
 # 添加可执行文件
 add_executable(${PROJECT_NAME} ${CPP_TEST_SOURCES} ${CPP_SOURCES} ${CPP_TOKENIZER_SOURCES} ${CUDA_SOURCES})
@@ -58,7 +41,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         GTest::gtest_main
 )
 
-if (DEFINED HAVE_CUDA)
+if (CUDAToolkit_FOUND)
     target_link_libraries(${PROJECT_NAME} PRIVATE
             CUDA::cudart
     )

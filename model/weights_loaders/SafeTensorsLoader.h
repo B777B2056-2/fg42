@@ -12,7 +12,7 @@ namespace fg42 {
     public:
         ~SafeTensorsLoader() override = default;
         void load(const std::filesystem::path& dir_path,
-            StateDict& state_dict, DeviceType device_type, DataType data_type) override;
+            StateDict& state_dict, DeviceType device_type) override;
 
     private:
         std::size_t header_offset_ = 0;
@@ -20,10 +20,10 @@ namespace fg42 {
         nlohmann::ordered_json read_header(WeightsFileReader& ifs);
 
         void read_data(WeightsFileReader& ifs, const nlohmann::ordered_json& header,
-            StateDict& state_dict, DeviceType device_type, DataType data_type);
+            StateDict& state_dict, DeviceType device_type);
 
         void read_one_safetensors(const std::filesystem::path& weights_file_path,
-            StateDict& state_dict, DeviceType device_type, DataType data_type);
+            StateDict& state_dict, DeviceType device_type);
     };
 } // fg42
 

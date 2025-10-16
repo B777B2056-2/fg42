@@ -224,6 +224,11 @@ namespace fg42::kernel {
         if (input_tensors[0]->shape().size() < 2) {
             throw std::invalid_argument("Input tensor should have at least 2 dims");
         }
+
+        // 列必须能被2整除
+        if (input_tensors[0]->shape().back() % 2 != 0) {
+            throw std::invalid_argument("Input tensor's last dim should be even");
+        }
     }
 
     Tensor CosineOperator::forward(const std::vector<const Tensor*>& input_tensors, void *stream) {
