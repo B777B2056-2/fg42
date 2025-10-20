@@ -4,3 +4,9 @@
 [submodule "external/Jinja2Cpp"]
 	path = external/Jinja2Cpp
 	url = https://github.com/jinja2cpp/Jinja2Cpp.git
+[submodule "external/cmdline"]
+	path = external/cmdline
+	url = https://github.com/tanakh/cmdline.git
+[submodule "external/httplib"]
+	path = external/httplib
+	url = https://github.com/yhirose/cpp-httplib.git
