@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # 查找CUDA工具包（改为可选查找）
-#find_package(CUDAToolkit QUIET)
+find_package(CUDAToolkit QUIET)
 
 # 根据CUDA是否可用设置宏和变量
 if(CUDAToolkit_FOUND)
