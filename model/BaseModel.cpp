@@ -9,13 +9,7 @@
 namespace fg42 {
     namespace fs = std::filesystem;
 
-    BaseModel::BaseModel(const std::string& dir_path, DeviceType device_type,
-        std::int32_t padding_idx, KVCacheImpl kv_cache_impl)
-    : device_type_(device_type), padding_idx_(padding_idx), kv_cache_impl_(kv_cache_impl) {
-        this->load_model_config(dir_path);
-    }
-
-    void BaseModel::load_model_config(const std::string& dir_path) {
+    ModelConfig parse_model_config(const std::string& dir_path) {
         fs::path dir = dir_path;
         fs::path config_path = dir / "config.json";
         auto config_file_path = dir / config_path;
@@ -36,29 +30,41 @@ namespace fg42 {
             throw std::runtime_error("Unsupported multi model architecture.");
         }
 
-        this->model_config_.architecture = architectures[0];
-        this->model_config_.bos_token_id = raw_model_config_["bos_token_id"].get<std::size_t>();
-        this->model_config_.eos_token_id = raw_model_config_["eos_token_id"].get<std::size_t>();
-        this->model_config_.num_attention_heads = raw_model_config_["num_attention_heads"].get<std::size_t>();
-        this->model_config_.num_key_value_heads = raw_model_config_["num_key_value_heads"].get<std::size_t>();
-        this->model_config_.hidden_size = raw_model_config_["hidden_size"].get<std::size_t>();
-        this->model_config_.num_hidden_layers = raw_model_config_["num_hidden_layers"].get<std::size_t>();
-        this->model_config_.vocab_size = raw_model_config_["vocab_size"].get<std::size_t>();
-        this->model_config_.max_position_embeddings = raw_model_config_["max_position_embeddings"].get<std::size_t>();
-        this->model_config_.rms_norm_eps = raw_model_config_["rms_norm_eps"].get<float>();
-        this->model_config_.rope_theta = raw_model_config_["rope_theta"].get<float>();
-        this->model_config_.use_cache = raw_model_config_["use_cache"].get<bool>();
+        ModelConfig model_config;
+        model_config.architecture = architectures[0];
+        model_config.bos_token_id = raw_model_config_["bos_token_id"].get<std::size_t>();
+        model_config.eos_token_id = raw_model_config_["eos_token_id"].get<std::size_t>();
+        model_config.num_attention_heads = raw_model_config_["num_attention_heads"].get<std::size_t>();
+        model_config.num_key_value_heads = raw_model_config_["num_key_value_heads"].get<std::size_t>();
+        model_config.hidden_size = raw_model_config_["hidden_size"].get<std::size_t>();
+        model_config.num_hidden_layers = raw_model_config_["num_hidden_layers"].get<std::size_t>();
+        model_config.vocab_size = raw_model_config_["vocab_size"].get<std::size_t>();
+        model_config.max_position_embeddings = raw_model_config_["max_position_embeddings"].get<std::size_t>();
+        model_config.rms_norm_eps = raw_model_config_["rms_norm_eps"].get<float>();
+        model_config.rope_theta = raw_model_config_["rope_theta"].get<float>();
+        model_config.use_cache = raw_model_config_["use_cache"].get<bool>();
 
         auto torch_dtype = raw_model_config_["torch_dtype"].get<std::string>();
         if (torch_dtype == "bfloat16") {
-            model_config_.data_type = DataType::BF16;
+            model_config.data_type = DataType::BF16;
         } else if (torch_dtype == "float32") {
-            model_config_.data_type = DataType::FP32;
+            model_config.data_type = DataType::FP32;
         } else if (torch_dtype == "int32") {
-            model_config_.data_type = DataType::Int32;
+            model_config.data_type = DataType::Int32;
         } else {
             throw std::runtime_error("Unsupported torch_dtype: " + torch_dtype);
         }
+        return model_config;
+    }
+
+    BaseModel::BaseModel(const std::string& dir_path, DeviceType device_type,
+        std::int32_t padding_idx, KVCacheImpl kv_cache_impl)
+    : device_type_(device_type), padding_idx_(padding_idx), kv_cache_impl_(kv_cache_impl) {
+        this->load_model_config(dir_path);
+    }
+
+    void BaseModel::load_model_config(const std::string& dir_path) {
+        model_config_ = parse_model_config(dir_path);
 
         // 按需初始化kv cache实例
         if (this->model_config_.use_cache) {

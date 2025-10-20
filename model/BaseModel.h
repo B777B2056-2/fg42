@@ -14,6 +14,8 @@
 #include "sampler/Sampler.h"
 
 namespace fg42 {
+    ModelConfig parse_model_config(const std::string& dir_path);
+
     class BaseModel {
     public:
         using StreamHandler = std::function<void(std::size_t, std::int32_t)>;
@@ -63,6 +65,8 @@ namespace fg42 {
         virtual void set_seq_len(std::size_t seq_len) = 0;
         virtual void clear_kv_cache() = 0;
     };
+
+
 } // fg42
 
 #endif //FG42_MODELLOADER_H
